@@ -216,7 +216,8 @@ async def test_webhook_notification_service_due_soon():
 @pytest.mark.asyncio
 async def test_notification_service_calculate_days(test_loan_due_soon: Loan):
     """Testa cálculo de dias restantes."""
-    current_time = utcnow()
+    # Usa o due_at como base para evitar problemas de arredondamento de milissegundos
+    current_time = test_loan_due_soon.due_at - timedelta(days=2)
     
     # Empréstimo vence em 2 dias
     days_remaining = NotificationService._calculate_days_remaining(
