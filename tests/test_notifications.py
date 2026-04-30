@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from uuid import uuid4
 
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import text
 
 from biblioteca_virtual.modules.notifications import (
     EmailNotificationService,
@@ -249,8 +250,8 @@ async def test_notification_service_no_duplicate_due_soon(
 
     # Verifica se foi registrada
     notifications = await session.execute(
-        "SELECT COUNT(*) FROM loan_notifications WHERE loan_id = %s",
-        (str(test_loan_due_soon.id),),
+        text("SELECT COUNT(*) FROM loan_notifications WHERE loan_id = :loan_id"),
+        {"loan_id": str(test_loan_due_soon.id)},
     )
     # Nota: Aqui você precisaria usar a query correta da SQLAlchemy
 

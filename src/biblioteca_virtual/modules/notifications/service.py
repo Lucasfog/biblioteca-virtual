@@ -233,6 +233,12 @@ class NotificationService:
         - Negativo: dias em atraso
         - Zero: venceu hoje
         """
+        # Garante que ambos tenham a mesma configuração de fuso horário
+        if due_at.tzinfo is None and current_time.tzinfo is not None:
+            due_at = due_at.replace(tzinfo=current_time.tzinfo)
+        elif current_time.tzinfo is None and due_at.tzinfo is not None:
+            current_time = current_time.replace(tzinfo=due_at.tzinfo)
+
         delta = due_at - current_time
         return delta.days
 
