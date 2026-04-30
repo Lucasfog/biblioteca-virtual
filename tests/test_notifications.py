@@ -24,6 +24,12 @@ from biblioteca_virtual.shared.utils import utcnow
 
 
 @pytest.fixture
+async def session(async_session: AsyncSession) -> AsyncSession:
+    """Alias para o async_session."""
+    return async_session
+
+
+@pytest.fixture
 async def test_user(session: AsyncSession) -> User:
     """Cria usuário de teste."""
     user = User(

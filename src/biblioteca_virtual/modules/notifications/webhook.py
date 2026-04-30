@@ -41,7 +41,7 @@ class MockWebhookProvider(WebhookProvider):
         logger.info(
             "mock_webhook_sent",
             webhook_url=webhook_url,
-            event=payload.event,
+            webhook_event=payload.event,
             loan_id=payload.loan_id,
         )
         return True
@@ -77,7 +77,7 @@ class HTTPWebhookProvider(WebhookProvider):
                         logger.info(
                             "webhook_sent_success",
                             webhook_url=webhook_url,
-                            event=payload.event,
+                            webhook_event=payload.event,
                             status_code=response.status_code,
                         )
                         return True
@@ -85,7 +85,7 @@ class HTTPWebhookProvider(WebhookProvider):
                         logger.warning(
                             "webhook_send_failed",
                             webhook_url=webhook_url,
-                            event=payload.event,
+                            webhook_event=payload.event,
                             status_code=response.status_code,
                             attempt=attempt + 1,
                         )
@@ -94,14 +94,14 @@ class HTTPWebhookProvider(WebhookProvider):
                 logger.warning(
                     "webhook_timeout",
                     webhook_url=webhook_url,
-                    event=payload.event,
+                    webhook_event=payload.event,
                     attempt=attempt + 1,
                 )
             except Exception as e:
                 logger.error(
                     "webhook_send_error",
                     webhook_url=webhook_url,
-                    event=payload.event,
+                    webhook_event=payload.event,
                     error=str(e),
                     attempt=attempt + 1,
                 )
