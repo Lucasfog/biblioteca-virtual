@@ -1,918 +1,201 @@
-# Biblioteca Virtual API
+# 📚 Biblioteca Virtual API
 
-> **API REST profissional para gerenciamento de biblioteca digital** com FastAPI, SQLAlchemy 2.0, PostgreSQL e Redis. Arquitetura em camadas (DDD Light + Service Layer) com foco em qualidade de produção.
-
-[![Python](https://img.shields.io/badge/Python-3.11+-3776ab?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.111+-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-316192?style=flat-square&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
-[![Redis](https://img.shields.io/badge/Redis-7-DC382D?style=flat-square&logo=redis&logoColor=white)](https://redis.io/)
+> **API REST para gerenciamento de biblioteca digital** com FastAPI, SQLAlchemy 2.0, PostgreSQL e Redis.
 
 ---
 
-## Índice
+## 📑 Índice
 
-1. [Visão Geral](#-visão-geral)
-2. [Instalação e Execução](#-instalação-e-execução)
-3. [Autenticação no Swagger](#-autenticação-no-swagger)
-4. [Rotas Disponíveis](#-rotas-disponíveis)
-5. [Payloads e Exemplos](#-payloads-e-exemplos)
-6. [Usando cURL](#-usando-curl)
-7. [Arquitetura e Decisões Técnicas](#-arquitetura-e-decisões-técnicas)
-8. [Estrutura do Projeto](#-estrutura-do-projeto)
+1. [Introdução](#1-introdução)
+2. [Instalação e Execução](#2-instalação-e-execução)
+3. [Autenticação no Swagger](#3-autenticação-no-swagger)
+4. [Listagem de Rotas](#4-listagem-de-rotas)
+5. [Payloads Necessários](#5-payloads-necessários)
+6. [Exemplos de Uso](#6-exemplos-de-uso)
 
 ---
 
-## Visão Geral
+## 1. 🚀 Introdução
 
-A **Biblioteca Virtual API** é um sistema robusto para gerenciar empréstimos, devoluções e cadastro de livros. 
+A **Biblioteca Virtual API** é um sistema robusto desenvolvido para gerenciar operações de uma biblioteca digital, incluindo o cadastro de usuários, livros, autores e o controle de empréstimos e devoluções.
 
-**Principais funcionalidades:**
-- Autenticação via JWT com middleware global
-- CRUD de usuários, livros, autores e empréstimos
-- Controle de cópias disponíveis e multa por atraso
-- Cache Redis para endpoints paginados
-- Rate limiting automático
-- Logging estruturado em JSON
-- Métricas Prometheus prontas para Grafana
-- Health check integrado
+O projeto foi construído para ser escalável e pronto para produção, utilizando:
+* **Autenticação JWT** para proteção de rotas
+* **Controle de estoque** de livros com validação transacional
+* **Cache via Redis** para otimização de consultas paginadas
+* **Cálculo de multas automáticas** para devoluções em atraso
 
 ---
 
-## Instalação e Execução
+## 2. ⚙️ Instalação e Execução
 
-### Opção 1: Com Docker (Recomendado)
+O projeto utiliza a ferramenta moderna `uv` para um gerenciamento ultrarrápido de dependências e ambientes virtuais.
 
-A forma mais rápida de executar a aplicação com todas as dependências:
+### Pré-requisitos
+* Python 3.11+
+* PostgreSQL 16+
+* Redis 7+
+* [uv](https://docs.astral.sh/uv/) instalado
 
+### Passo a Passo
+
+**1. Instalar dependências e criar ambiente virtual**
 ```bash
-# 1. Clonar o repositório
-git clone <seu-repositorio>
-cd biblioteca-virtual
-
-# 2. Copiar arquivo de configuração (opcional)
-cp .env.example .env
-
-# 3. Executar com Docker Compose
-docker compose up --build
-```
-
-A API estará disponível em **http://localhost:8000**  
-Documentação Swagger em **http://localhost:8000/docs**  
-Documentação ReDoc em **http://localhost:8000/redoc**
-
----
-
-### Opção 2: Instalação Local com `uv`
-
-Para desenvolvedores que preferem executar localmente:
-
-#### Pré-requisitos
-- Python 3.11+
-- PostgreSQL 16+
-- Redis 7+
-- `uv` instalado ([Documentação](https://docs.astral.sh/uv/))
-
-#### 2.1 Instalar Dependências
-```bash
-# Instalar uv (se não estiver instalado)
-curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# Criar ambiente virtual e instalar dependências
 uv sync --all-groups
 ```
 
-#### 2.2 Configurar Variáveis de Ambiente
+**2. Configurar o ambiente**
 ```bash
 cp .env.example .env
+# Edite o .env com suas credenciais de banco de dados e Redis
 ```
 
-Edite `.env` com suas credenciais:
-```env
-DATABASE_URL=postgresql+asyncpg://postgres:seu_password@localhost:5432/biblioteca
-REDIS_URL=redis://localhost:6379/0
-LOG_LEVEL=info
-```
-
-#### 2.3 Executar Migrações do Banco
+**3. Executar as migrações (Banco de Dados)**
 ```bash
 uv run alembic upgrade head
 ```
 
-#### 2.4 Executar a Aplicação
+**4. Rodar a aplicação (Modo Desenvolvimento)**
 ```bash
-# Modo desenvolvimento com hot-reload
 uv run uvicorn biblioteca_virtual.main:app --reload
-
-# Modo produção
-uv run uvicorn biblioteca_virtual.main:app --host 0.0.0.0 --port 8000
 ```
+A API estará disponível em `http://localhost:8000` e a documentação interativa em `http://localhost:8000/docs`.
 
-A aplicação estará em **http://localhost:8000**
-
----
-
-#### 2.5 Executar Testes
+**5. Rodar os testes**
 ```bash
-# Executar todos os testes
 uv run pytest
-
-# Com cobertura de código
-uv run pytest --cov=src/biblioteca_virtual
-
-# Modo verboso
-uv run pytest -v
 ```
 
-#### 2.6 Popular Banco com Dados Iniciais (Seed)
+**6. Buildar o projeto para produção**
 ```bash
-uv run python scripts/seed.py
-```
-
-Isso criará usuários e livros de exemplo para testes.
-
----
-
-#### 2.7 Construir para Produção
-```bash
-# Você pode use uv para preparar o ambiente
 uv build
-
-# Ou use pip normalmente com o ambiente virtual do uv
-uv pip install -e .
 ```
 
 ---
 
-## Autenticação no Swagger
+## 3. 🔐 Autenticação no Swagger
 
-### Passo a Passo para Autenticar
+Para testar as rotas protegidas diretamente pela interface interativa do Swagger, siga os passos abaixo.
 
-1. **Abra o Swagger UI**
-   - Acesse: http://localhost:8000/docs
-
-2. **Localize a rota `/api/v1/auth/token`**
-   - Role até a seção **Auth**
-   - Encontre o endpoint **POST /api/v1/auth/token**
-
-3. **Clique em "Try it out"**
-   - O formulário abrirá para você inserir credenciais
-
-4. **Insira as Credenciais de Login**
-   
-   Use as credenciais abaixo (do seed.py):
-
-   ```json
-   {
-     "username": "admin@example.com",
-     "password": "123456"
-   }
-   ```
-
-5. **Clique em "Execute"**
-   - A resposta conterá o `access_token`
-   
-   Exemplo de resposta:
-   ```json
-   {
-     "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-     "token_type": "bearer"
-   }
-   ```
-
-6. **Copie o Token**
-   - Selecione todo o valor do `access_token` (sem as aspas)
-
-7. **Configure a Autorização Global**
-   - Clique no botão verde **"Authorize"** no canto superior direito
-   - Cola o token na caixa: `Bearer seu_token_aqui`
-   - Clique em **"Authorize"**
-   - Clique em **"Close"** para fechar o diálogo
-
-8. **Teste uma Rota Protegida**
-   - Clique em **GET /api/v1/users**
-   - Clique em **"Try it out"**
-   - Clique em **"Execute"**
-   - Você verá a lista de usuários autenticado
-
-### Credenciais de Teste
-
-| Email | Senha | Perfil |
-|-------|-------|--------|
-| `admin@example.com` | `123456` | Admin |
-| `user@example.com` | `123456` | Usuário Comum |
-
----
-
-## Rotas Disponíveis
-
-### Visão Geral das APIs
-
-| Método | Rota | Descrição | Autenticação | Paginado |
-|--------|------|-----------|--------------|----------|
-| **POST** | `/api/v1/auth/token` | Fazer login e obter token JWT | ❌ | ❌ |
-| **POST** | `/api/v1/users` | Criar novo usuário | ❌ | ❌ |
-| **GET** | `/api/v1/users` | Listar usuários | - | - |
-| **GET** | `/api/v1/users/{user_id}` | Obter detalhes de usuário | - | ❌ |
-| **GET** | `/api/v1/users/{user_id}/loans` | Listar empréstimos do usuário | - | - |
-| **POST** | `/api/v1/books` | Criar novo livro | - | ❌ |
-| **GET** | `/api/v1/books` | Listar livros | - | - |
-| **GET** | `/api/v1/books/{book_id}` | Obter detalhes do livro | - | ❌ |
-| **GET** | `/api/v1/books/{book_id}/availability` | Verificar disponibilidade | - | ❌ |
-| **POST** | `/api/v1/loans` | Realizar empréstimo | - | ❌ |
-| **POST** | `/api/v1/loans/{loan_id}/return` | Devolver livro | - | ❌ |
-| **GET** | `/api/v1/loans/active` | Listar empréstimos ativos | - | - |
-| **GET** | `/api/v1/loans/{loan_id}` | Obter detalhes do empréstimo | - | ❌ |
-
----
-
-## Payloads e Exemplos
-
-### 1. Autenticação
-
-#### Fazer Login
-```http
-POST /api/v1/auth/token
-Content-Type: application/x-www-form-urlencoded
-
-username=admin@example.com&password=123456
-```
-
-**Resposta (200)**
+### Credenciais de Exemplo
 ```json
 {
-  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "token_type": "bearer"
+  "username": "admin@example.com",
+  "password": "123456"
 }
 ```
 
+### Passo a Passo:
+1. **Fazer login:** Acesse o Swagger UI em `http://localhost:8000/docs`. Vá até a rota **`POST /api/v1/auth/token`** e clique em *Try it out*.
+2. **Copiar token retornado:** Insira as credenciais de exemplo (email como `username` e a `password`). Clique em **Execute** e copie o valor do `access_token` retornado no corpo da resposta.
+3. **Clicar em Authorize no Swagger:** No topo da página do Swagger, clique no botão verde **Authorize**.
+4. **Inserir Bearer Token:** Insira `Bearer <seu_token_copiado>` no campo de valor e clique no botão **Authorize** da janela modal.
+5. **Testar rotas protegidas:** Agora você pode testar qualquer rota! O ícone de cadeado nas rotas protegidas aparecerá fechado indicando que você está autenticado.
+
 ---
 
-### 2. Usuários
+## 4. 🗺️ Listagem de Rotas
 
-#### Criar Usuário
-```http
-POST /api/v1/users
-Content-Type: application/json
+Visão geral dos endpoints disponíveis na API:
 
+| Método | Rota | Descrição | Auth |
+| :---: | :--- | :--- | :---: |
+| **POST** | `/api/v1/auth/token` | Realiza autenticação e retorna token JWT | Não |
+| **POST** | `/api/v1/users` | Cria um novo usuário no sistema | Não |
+| **GET** | `/api/v1/users` | Lista os usuários cadastrados | Sim |
+| **GET** | `/api/v1/users/{id}` | Retorna os detalhes de um usuário específico | Sim |
+| **POST** | `/api/v1/books` | Cadastra um novo livro no acervo | Sim |
+| **GET** | `/api/v1/books` | Lista os livros disponíveis | Sim |
+| **GET** | `/api/v1/books/{id}/availability`| Verifica a disponibilidade de cópias de um livro | Sim |
+| **POST** | `/api/v1/loans` | Realiza o empréstimo de um livro para um usuário | Sim |
+| **POST** | `/api/v1/loans/{id}/return` | Registra a devolução de um livro emprestado | Sim |
+| **GET** | `/api/v1/loans/active` | Lista todos os empréstimos ativos | Sim |
+
+---
+
+## 5. 📦 Payloads Necessários
+
+Abaixo estão os formatos de envio (body), query params e headers exigidos nas rotas principais da aplicação.
+
+### Autenticação (`POST /api/v1/auth/token`)
+* **Headers**: `Content-Type: application/x-www-form-urlencoded`
+* **Body (Form Data)**:
+  * `username`: Email do usuário
+  * `password`: Senha do usuário
+
+### Criar Usuário (`POST /api/v1/users`)
+* **Headers**: `Content-Type: application/json`
+* **Body (JSON)**:
+```json
 {
-  "email": "joao.silva@example.com",
+  "email": "usuario@example.com",
   "password": "SenhaSegura123!",
-  "full_name": "João Silva"
+  "full_name": "Nome do Usuário"
 }
 ```
 
-**Resposta (201)**
+### Cadastrar Livro (`POST /api/v1/books`)
+* **Headers**: `Content-Type: application/json`, `Authorization: Bearer <token>`
+* **Body (JSON)**:
 ```json
 {
-  "id": "550e8400-e29b-41d4-a716-446655440000",
-  "email": "joao.silva@example.com",
-  "full_name": "João Silva",
-  "is_active": true,
-  "created_at": "2024-04-29T10:30:00Z"
-}
-```
-
-#### Listar Usuários
-```http
-GET /api/v1/users?offset=0&limit=10
-Authorization: Bearer {seu_token}
-```
-
-**Resposta (200)**
-```json
-{
-  "items": [
-    {
-      "id": "550e8400-e29b-41d4-a716-446655440000",
-      "email": "admin@example.com",
-      "full_name": "Admin User",
-      "is_active": true,
-      "created_at": "2024-04-29T10:00:00Z"
-    }
-  ],
-  "total": 5,
-  "offset": 0,
-  "limit": 10
-}
-```
-
-#### Obter Usuário Específico
-```http
-GET /api/v1/users/550e8400-e29b-41d4-a716-446655440000
-Authorization: Bearer {seu_token}
-```
-
----
-
-### 3. Livros
-
-#### Criar Livro
-```http
-POST /api/v1/books
-Content-Type: application/json
-Authorization: Bearer {seu_token}
-
-{
-  "title": "Clean Code",
+  "title": "Clean Architecture",
   "author_name": "Robert C. Martin",
-  "isbn": "978-0132350884",
-  "total_copies": 5
+  "isbn": "978-0134494166",
+  "total_copies": 10
 }
 ```
 
-**Resposta (201)**
+### Realizar Empréstimo (`POST /api/v1/loans`)
+* **Headers**: `Content-Type: application/json`, `Authorization: Bearer <token>`
+* **Body (JSON)**:
 ```json
 {
-  "id": "660e8400-e29b-41d4-a716-446655440000",
-  "title": "Clean Code",
-  "author": {
-    "id": "770e8400-e29b-41d4-a716-446655440000",
-    "name": "Robert C. Martin"
-  },
-  "isbn": "978-0132350884",
-  "total_copies": 5,
-  "available_copies": 5,
-  "created_at": "2024-04-29T10:30:00Z"
+  "user_id": "123e4567-e89b-12d3-a456-426614174000",
+  "book_id": "987fcdeb-51a2-43d7-9012-345678901234",
+  "due_date": "2024-12-31"
 }
 ```
 
-#### Listar Livros
-```http
-GET /api/v1/books?offset=0&limit=10
-Authorization: Bearer {seu_token}
-```
-
-#### Verificar Disponibilidade
-```http
-GET /api/v1/books/660e8400-e29b-41d4-a716-446655440000/availability
-Authorization: Bearer {seu_token}
-```
-
-**Resposta (200)**
-```json
-{
-  "book_id": "660e8400-e29b-41d4-a716-446655440000",
-  "available": true,
-  "available_copies": 5,
-  "total_copies": 5
-}
-```
+### Paginação em Rotas GET (`GET /api/v1/books`, `GET /api/v1/users`)
+* **Headers**: `Authorization: Bearer <token>`
+* **Query Params**:
+  * `offset` (int): Posição inicial (ex: `0`)
+  * `limit` (int): Quantidade de registros por página (ex: `10`)
 
 ---
 
-### 4. Empréstimos
+## 6. 💻 Exemplos de Uso
 
-#### Realizar Empréstimo
-```http
-POST /api/v1/loans
-Content-Type: application/json
-Authorization: Bearer {seu_token}
+### Exemplos via Swagger
+1. **Autenticação**: Abra a interface do Swagger, expanda a aba `/api/v1/auth/token`, insira `admin@example.com` no campo username, sua respectiva senha e clique em *Execute*.
+2. **Listar Livros**: Após autorizar globalmente no Swagger com seu token, expanda `GET /api/v1/books`, preencha os parâmetros `offset=0` e `limit=10` e clique em *Execute*. A resposta listará os livros registrados no banco de dados.
+3. **Fazer Empréstimo**: Expanda `POST /api/v1/loans`, insira os UUIDs válidos de um usuário e de um livro diretamente no payload JSON e clique em *Execute*. Você receberá o status `201 Created` confirmando a operação.
 
-{
-  "user_id": "550e8400-e29b-41d4-a716-446655440000",
-  "book_id": "660e8400-e29b-41d4-a716-446655440000",
-  "due_date": "2024-05-29"
-}
-```
+### Exemplos via cURL
 
-**Resposta (201)**
-```json
-{
-  "id": "880e8400-e29b-41d4-a716-446655440000",
-  "user_id": "550e8400-e29b-41d4-a716-446655440000",
-  "book_id": "660e8400-e29b-41d4-a716-446655440000",
-  "borrowed_at": "2024-04-29T10:30:00Z",
-  "due_date": "2024-05-29",
-  "returned_at": null,
-  "status": "active",
-  "fine_cents": 0
-}
-```
-
-#### Devolver Livro
-```http
-POST /api/v1/loans/880e8400-e29b-41d4-a716-446655440000/return
-Authorization: Bearer {seu_token}
-```
-
-**Resposta (200)**
-```json
-{
-  "id": "880e8400-e29b-41d4-a716-446655440000",
-  "user_id": "550e8400-e29b-41d4-a716-446655440000",
-  "book_id": "660e8400-e29b-41d4-a716-446655440000",
-  "borrowed_at": "2024-04-29T10:30:00Z",
-  "due_date": "2024-05-29",
-  "returned_at": "2024-04-30T14:15:00Z",
-  "status": "returned",
-  "fine_cents": 0
-}
-```
-
-#### Listar Empréstimos Ativos
-```http
-GET /api/v1/loans/active?offset=0&limit=10
-Authorization: Bearer {seu_token}
-```
-
----
-
-## Usando cURL
-
-Exemplos práticos para consumir a API via linha de comando.
-
-### 1. Fazer Login
+**Login e obtenção de token**
 ```bash
 curl -X POST http://localhost:8000/api/v1/auth/token \
   -H "Content-Type: application/x-www-form-urlencoded" \
   -d "username=admin@example.com&password=123456"
 ```
 
-**Salvar o token em uma variável:**
-```bash
-TOKEN=$(curl -s -X POST http://localhost:8000/api/v1/auth/token \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "username=admin@example.com&password=123456" | jq -r '.access_token')
-
-echo "Token: $TOKEN"
-```
-
----
-
-### 2. Criar Usuário (sem autenticação)
+**Criar um novo usuário (Rota Pública)**
 ```bash
 curl -X POST http://localhost:8000/api/v1/users \
   -H "Content-Type: application/json" \
-  -d '{
-    "email": "novo@example.com",
-    "password": "Senha123!",
-    "full_name": "Novo Usuário"
-  }'
+  -d '{"email": "novo@usuario.com", "password": "Password123!", "full_name": "Novo Usuário"}'
 ```
 
----
-
-### 3. Listar Usuários (com autenticação)
+**Listar livros (Requer Autenticação)**
 ```bash
-TOKEN="seu_token_aqui"
-
-curl -X GET "http://localhost:8000/api/v1/users?offset=0&limit=10" \
-  -H "Authorization: Bearer $TOKEN"
+curl -X GET "http://localhost:8000/api/v1/books?offset=0&limit=10" \
+  -H "Authorization: Bearer SEU_TOKEN_AQUI"
 ```
 
----
-
-### 4. Criar Livro
+**Registrar devolução de um empréstimo**
 ```bash
-TOKEN="seu_token_aqui"
-
-curl -X POST http://localhost:8000/api/v1/books \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $TOKEN" \
-  -d '{
-    "title": "Design Patterns",
-    "author_name": "Gang of Four",
-    "isbn": "978-0201633610",
-    "total_copies": 3
-  }'
+curl -X POST http://localhost:8000/api/v1/loans/LOAN_ID_AQUI/return \
+  -H "Authorization: Bearer SEU_TOKEN_AQUI"
 ```
-
----
-
-### 5. Listar Livros com Paginação
-```bash
-TOKEN="seu_token_aqui"
-
-curl -X GET "http://localhost:8000/api/v1/books?offset=0&limit=5" \
-  -H "Authorization: Bearer $TOKEN" | jq '.'
-```
-
----
-
-### 6. Verificar Disponibilidade de Livro
-```bash
-TOKEN="seu_token_aqui"
-BOOK_ID="seu_book_id"
-
-curl -X GET "http://localhost:8000/api/v1/books/$BOOK_ID/availability" \
-  -H "Authorization: Bearer $TOKEN"
-```
-
----
-
-### 7. Realizar Empréstimo
-```bash
-TOKEN="seu_token_aqui"
-
-curl -X POST http://localhost:8000/api/v1/loans \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $TOKEN" \
-  -d '{
-    "user_id": "550e8400-e29b-41d4-a716-446655440000",
-    "book_id": "660e8400-e29b-41d4-a716-446655440000",
-    "due_date": "2024-05-29"
-  }'
-```
-
----
-
-### 8. Devolver Livro
-```bash
-TOKEN="seu_token_aqui"
-LOAN_ID="seu_loan_id"
-
-curl -X POST "http://localhost:8000/api/v1/loans/$LOAN_ID/return" \
-  -H "Authorization: Bearer $TOKEN"
-```
-
----
-
-### 9. Listar Empréstimos Ativos
-```bash
-TOKEN="seu_token_aqui"
-
-curl -X GET "http://localhost:8000/api/v1/loans/active?offset=0&limit=10" \
-  -H "Authorization: Bearer $TOKEN" | jq '.'
-```
-
----
-
-## Arquitetura e Decisões Técnicas
-
-### Arquitetura em Camadas
-
-A aplicação segue o padrão **DDD Light + Service Layer**:
-
-```
-┌─────────────────────────────────────────┐
-│ API Layer (FastAPI Router + Schemas)    │ ← Contratos HTTP
-├─────────────────────────────────────────┤
-│ Service Layer (Regras de Negócio)       │ ← Orquestração
-├─────────────────────────────────────────┤
-│ Repository Layer (Acesso a Dados)       │ ← Isolamento por Agregado
-├─────────────────────────────────────────┤
-│ Core/Shared (Config, Cache, Logging)    │ ← Infraestrutura
-└─────────────────────────────────────────┘
-```
-
-**Benefícios:**
-- Fácil de testar (mocks em cada camada)
-- Mudanças no BD não afetam a API
-- Regras de negócio centralizadas
-- Código organizado e manutenível
-
----
-
-### Modelo de Banco de Dados
-
-| Tabela | Descrição |
-|--------|-----------|
-| **users** | Dados de usuários e autenticação |
-| **authors** | Autores únicos de livros |
-| **books** | Catálogo de livros com controle de cópias |
-| **loans** | Histórico de empréstimos e devoluções |
-
-**Regras de Integridade:**
-- Cópias disponíveis: `0 <= available_copies <= total_copies`
-- Índices em: email, isbn, author_id, loan_status para otimização
-
----
-
-### Escolhas Tecnológicas
-
-| Tecnologia | Motivo |
-|-----------|--------|
-| **FastAPI** | Performance, docs automáticas, validação built-in |
-| **SQLAlchemy 2.0 async** | Não-bloqueante, tipado, moderno |
-| **Pydantic v2** | Validação rigorosa, serialização eficiente |
-| **Redis** | Cache de leitura, rate limiting distribuído |
-| **Python-Jose (JWT)** | Padrão de autenticação stateless |
-| **Structlog** | Logging estruturado em JSON |
-| **Prometheus** | Métricas prontas para observabilidade |
-
----
-
-### Rate Limiting e Cache
-
-- **Rate Limit:** 10-60 requisições por minuto (cofigurável por rota)
-- **Cache:** Endpoints GET paginados com TTL automático (via Redis)
-- **Invalidação:** Automática em CREATE/UPDATE/DELETE
-
----
-
-### Fluxo Crítico: Empréstimo de Livro
-
-O fluxo de empréstimo envolve a API recebendo a requisição, validando as regras de negócio e disponibilidade de cópias no Service Layer, realizando a persistência no banco de dados através do Repository, invalidando o cache no Redis e retornando a resposta.
-
----
-
-## Estrutura do Projeto
-
-```
-biblioteca-virtual/
-├── src/biblioteca_virtual/
-│   ├── main.py                          # Configuração FastAPI
-│   ├── api/v1/
-│   │   ├── router.py                    # Agregador de rotas
-│   │   ├── auth.py                      # Endpoints de autenticação
-│   │   ├── users.py                     # Endpoints de usuários
-│   │   ├── books.py                     # Endpoints de livros
-│   │   └── loans.py                     # Endpoints de empréstimos
-│   ├── modules/
-│   │   ├── auth/
-│   │   │   ├── service.py               # Lógica de autenticação
-│   │   │   └── schemas.py               # DTOs de auth
-│   │   ├── users/
-│   │   │   ├── models.py                # Modelos ORM
-│   │   │   ├── service.py               # Lógica de usuários
-│   │   │   ├── repository.py            # Acesso a dados
-│   │   │   └── schemas.py               # DTOs
-│   │   ├── books/
-│   │   │   └── ...                      # Mesmo padrão
-│   │   └── loans/
-│   │       └── ...                      # Mesmo padrão
-│   ├── core/
-│   │   ├── config.py                    # Variáveis de ambiente
-│   │   ├── db.py                        # Conexão PostgreSQL
-│   │   ├── cache.py                     # Redis
-│   │   ├── security.py                  # JWT
-│   │   ├── middleware.py                # Auth middleware
-│   │   ├── rate_limit.py                # Rate limiting
-│   │   ├── logging.py                   # Estruturação de logs
-│   │   ├── metrics.py                   # Prometheus
-│   │   └── health.py                    # Health check
-│   └── shared/
-│       ├── pagination.py                # Paginação padrão
-│       └── utils.py                     # Utilitários
-├── migrations/                          # Alembic (versionamento de DB)
-├── tests/                               # Suite de testes
-├── scripts/
-│   └── seed.py                          # Dados iniciais
-├── docker-compose.yml                   # Stack local (PostgreSQL + Redis)
-├── Dockerfile
-├── pyproject.toml                       # Configuração Python (uv/pip)
-└── README.md
-```
-
----
-
-## Testando a Aplicação
-
-### Executar Testes
-```bash
-# Todos os testes
-uv run pytest
-
-# Com cobertura
-uv run pytest --cov=src/biblioteca_virtual
-
-# Apenas testes de integração
-uv run pytest tests/test_api_integration.py -v
-
-# Apenas testes de unidade
-uv run pytest tests/test_unit_services.py -v
-```
-
----
-
-## Monitoramento
-
-### Health Check
-```bash
-curl http://localhost:8000/health
-```
-
-**Resposta**
-```json
-{
-  "status": "healthy",
-  "database": "connected",
-  "redis": "connected"
-}
-```
-
-### Métricas Prometheus
-```bash
-curl http://localhost:8000/metrics
-```
-
-As métricas podem ser scraped por Prometheus e visualizadas em Grafana.
-
----
-
-## Contribuindo
-
-1. Crie uma branch: `git checkout -b feature/minha-feature`
-2. Commit suas mudanças: `git commit -m "Adiciona minha feature"`
-3. Push para a branch: `git push origin feature/minha-feature`
-4. Abra um Pull Request
-
----
-
-## Licença
-
-Este projeto está sob a licença MIT. Veja o arquivo LICENSE para mais detalhes.
-
----
-
-## Documentação das Decisões Arquiteturais
-
-A aplicação foi desenhada com uma separação clara de responsabilidades:
-- **API Layer**: routers FastAPI, schemas Pydantic v2, validações e contratos claros.
-- **Service Layer**: regras de negócio, transações e orquestração.
-- **Repository Layer**: isolamento do acesso a dados por agregado.
-- **Core/Shared**: configuração, observabilidade, segurança, cache, rate limit e utilitários.
-
-Essa separação facilita testes, evolução de regras e troca de infraestrutura sem impacto nas camadas superiores.
-
-### Modelagem de Banco de Dados
-
-- **users**: dados cadastrais, autenticação e status ativo.
-- **authors**: autores únicos por nome.
-- **books**: livro vinculado a autor, com controle de cópias.
-- **loans**: empréstimos com status, vencimento, devolução e multa.
-
-**Regras aplicadas no modelo:**
-- Constraints para manter cópias disponíveis >= 0 e <= total.
-- Índices para email, isbn, author_id e status de empréstimo para otimização de consultas.
-
-### Escolhas Tecnológicas e Trade-offs
-
-- **FastAPI**: Escolhido pela performance e geração automática de documentação OpenAPI.
-- **SQLAlchemy 2.0 async**: Padrão moderno, tipado e performático para operações de I/O no banco.
-- **Pydantic v2**: Garante contratos claros e validação rápida.
-- **Auth Middleware Global**: Proteção centralizada blindando todas as rotas (exceto públicas como login e signup) sem overhead de requisições repetidas ao BD (O(1)).
-- **Redis**: Cache de leitura em endpoints paginados e rate limit com baixo custo.
-- **Observabilidade**: Logging estruturado em JSON com `request_id`, métricas Prometheus prontas para Grafana e Health check para validação de DB e Redis.
-- **Trade-offs**: Optamos por um modelo simples de disponibilidade (total/available copies) para evitar consultas complexas e custosas de estoque. Rate limit e cache são ativados apenas quando o Redis está configurado/habilitado.
-
-### Fluxo de Requisição e Infraestrutura
-
-#### Diagrama de Infraestrutura e Fluxo
-A infraestrutura utiliza FastAPI rodando em um container Docker, conectando-se ao PostgreSQL para banco de dados relacional e Redis para cache e rate limit. As métricas são exportadas para o Prometheus. O fluxo de empréstimo segue o padrão de requisição para o Router, validação e regras de negócio no Service, controle transacional e consultas ao banco pelo Repository e, em caso de sucesso, retorno para o cliente com invalidação do cache pertinente.
-
----
-
-## Lista de Funcionalidades Implementadas
-
-- **Gestão de Usuários**: Cadastro, autenticação (JWT) e consulta de usuários.
-- **Catálogo de Livros**: Cadastro e listagem de livros e autores, com paginação e cache Redis.
-- **Gestão de Empréstimos**:
-  - Regras rígidas de prazo e limite de empréstimos ativos por usuário.
-  - Cálculo automático de multas em caso de atraso na devolução.
-  - Controle transacional de estoque (cópias disponíveis).
-- **Segurança e Proteção**:
-  - Middleware de autenticação global.
-  - Rate limiting utilizando Redis.
-- **Qualidade de Produção**:
-  - Métricas nativas exportadas no formato Prometheus (`/metrics`).
-  - Health checks (`/health`) com validação real de DB e Cache.
-  - Logs estruturados para facilitar rastreamento (`request_id`).
-- **Resumo dos Endpoints Principais**:
-  - **Auth**: `POST /api/v1/auth/token`
-  - **Users**: `GET /api/v1/users` | `POST /api/v1/users` (Signup) | `GET /api/v1/users/{id}` | `GET /api/v1/users/{id}/loans`
-  - **Books**: `GET /api/v1/books` | `POST /api/v1/books` | `GET /api/v1/books/{id}/availability`
-  - **Loans**: `POST /api/v1/loans` | `POST /api/v1/loans/{id}/return` | `GET /api/v1/loans/active` | `GET /api/v1/loans/overdue` | `GET /api/v1/loans/user/{id}`
-  - *Obs: Todos os endpoints GET que retornam listas utilizam paginação via query params (`?offset=0&limit=50`).*
-
----
-
-## Exemplos de Uso da API
-
-Abaixo um fluxo rápido demonstrando como interagir com a API utilizando o `cURL`.
-
-### 1. Criar um novo usuário (Signup)
-
-```bash
-curl -X POST http://localhost:8000/api/v1/users \
-	-H "Content-Type: application/json" \
-	-d '{"full_name":"Admin","email":"admin@biblioteca.com","password":"Admin123!"}'
-```
-
-### 2. Gerar o token de autenticação (Login)
-
-```bash
-curl -X POST http://localhost:8000/api/v1/auth/token \
-	-H "Content-Type: application/x-www-form-urlencoded" \
-	-d "username=admin@biblioteca.com&password=Admin123!"
-```
-*O retorno será um JSON contendo o `access_token`.*
-
-### 3. Utilizar o token para consultas protegidas (ex: listar livros)
-
-Copie o `<token>` retornado no passo anterior e envie no header `Authorization`:
-
-```bash
-curl -H "Authorization: Bearer <token>" \
-    http://localhost:8000/api/v1/books?offset=0&limit=50
-```
-
-### 4. Consultar status da aplicação e métricas
-
-```bash
-# Health check (Público)
-curl http://localhost:8000/health
-
-# Métricas (Público, para o Prometheus)
-curl http://localhost:8000/metrics
-```
-
----
-
-## Sistema de Notificações de Empréstimos
-
-Sistema automático de notificações para avisar sobre vencimento e atraso de empréstimos via **Email** e **Webhook**.
-
-### Features
-
-- Notificações automáticas nos dias 3, 1 e 0 antes do vencimento  
-- Alertas diários para empréstimos vencidos  
-- Emails moderno com design responsivo  
-- Webhooks para integrações externas  
-- Sem duplicação de notificações  
-- Histórico completo de envios  
-- Configurável via variáveis de ambiente  
-
-### Configuração Rápida
-
-1. **Copiar arquivo de configuração**:
-```bash
-cp .env.example.notifications .env
-```
-
-2. **Ativar no `.env`**:
-```bash
-NOTIFICATION_ENABLED=true
-NOTIFICATION_SCHEDULER_ENABLED=true
-NOTIFICATION_SCHEDULER_INTERVAL_MINUTES=60
-EMAIL_PROVIDER=mock  # mock para dev, smtp para produção
-```
-
-3. **Executar migração**:
-```bash
-alembic upgrade head
-```
-
-4. **Reiniciar a aplicação**:
-```bash
-uvicorn biblioteca_virtual.main:app --reload
-```
-
-### Documentação Completa
-
-Para configuração detalhada, provedor de email SMTP, webhook e troubleshooting, veja [NOTIFICATIONS_SETUP.md](./NOTIFICATIONS_SETUP.md).
-
-### Uso Manual
-
-```bash
-# Processar todas as notificações agora
-python scripts/notifications_admin.py process
-
-# Enviar notificação para empréstimo específico
-python scripts/notifications_admin.py send-manual <loan_id>
-
-# Listar notificações pendentes
-python scripts/notifications_admin.py list
-```
-
-### Exemplos
-
-**Email de Vencimento Próximo**
-```
-Assunto: ⏰ Seu empréstimo vence em 3 dia(s)
-
-Olá João Silva,
-
-Gostaríamos de lembrá-lo que seu empréstimo está próximo do vencimento.
-Por favor, devolva o livro no prazo para evitar multa.
-
-📚 Livro: Clean Code
-📅 Vencimento: 10/05/2026
-⏳ Dias até vencimento: 3
-```
-
-**Email de Atraso**
-```
-Assunto: 🚨 Empréstimo vencido há 5 dia(s)
-
-Olá João Silva,
-
-Infelizmente, seu empréstimo passou do prazo de devolução.
-Isto está gerando multa por atraso. Por favor, devolva o livro o quanto antes.
-```
-
-**Webhook Payload**
-```json
-{
-  "event": "loan_due_soon",
-  "user_id": "550e8400-e29b-41d4-a716-446655440000",
-  "loan_id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
-  "book_title": "Clean Code",
-  "due_date": "2026-05-10T14:30:00",
-  "days_left": 3,
-  "is_overdue": false,
-  "timestamp": "2026-05-07T10:15:00"
-}
-```
-
----
