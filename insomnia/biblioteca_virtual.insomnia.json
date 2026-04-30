@@ -1,0 +1,346 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2026-04-29T00:00:00.000Z",
+  "__export_source": "insomnia.desktop.app",
+  "resources": [
+    {
+      "_id": "wrk_biblioteca",
+      "_type": "workspace",
+      "name": "Biblioteca Virtual API",
+      "description": "",
+      "parentId": null,
+      "modified": 0,
+      "created": 0
+    },
+    {
+      "_id": "env_base",
+      "_type": "environment",
+      "parentId": "wrk_biblioteca",
+      "name": "Base Environment",
+      "data": {
+        "base_url": "http://localhost:8000",
+        "token": "",
+        "userId": "",
+        "bookId": "",
+        "loanId": ""
+      },
+      "modified": 0,
+      "created": 0
+    },
+    {
+      "_id": "fld_health",
+      "_type": "request_group",
+      "parentId": "wrk_biblioteca",
+      "name": "Health & Metrics",
+      "modified": 0,
+      "created": 0
+    },
+    {
+      "_id": "req_health",
+      "_type": "request",
+      "parentId": "fld_health",
+      "name": "Health",
+      "method": "GET",
+      "url": "{{ _.base_url }}/health",
+      "headers": [],
+      "body": {},
+      "modified": 0,
+      "created": 0
+    },
+    {
+      "_id": "req_metrics",
+      "_type": "request",
+      "parentId": "fld_health",
+      "name": "Metrics",
+      "method": "GET",
+      "url": "{{ _.base_url }}/metrics",
+      "headers": [],
+      "body": {},
+      "modified": 0,
+      "created": 0
+    },
+    {
+      "_id": "fld_auth",
+      "_type": "request_group",
+      "parentId": "wrk_biblioteca",
+      "name": "Auth",
+      "modified": 0,
+      "created": 0
+    },
+    {
+      "_id": "req_token",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Token",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/v1/auth/token",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/x-www-form-urlencoded"
+        }
+      ],
+      "body": {
+        "mimeType": "application/x-www-form-urlencoded",
+        "params": [
+          {
+            "name": "username",
+            "value": "admin@biblioteca.com"
+          },
+          {
+            "name": "password",
+            "value": "Admin123!"
+          }
+        ]
+      },
+      "modified": 0,
+      "created": 0
+    },
+    {
+      "_id": "fld_users",
+      "_type": "request_group",
+      "parentId": "wrk_biblioteca",
+      "name": "Users",
+      "modified": 0,
+      "created": 0
+    },
+    {
+      "_id": "req_users_list",
+      "_type": "request",
+      "parentId": "fld_users",
+      "name": "List Users",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/v1/users?offset=0&limit=50",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        }
+      ],
+      "body": {},
+      "modified": 0,
+      "created": 0
+    },
+    {
+      "_id": "req_users_create",
+      "_type": "request",
+      "parentId": "fld_users",
+      "name": "Create User",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/v1/users",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"full_name\": \"Admin\",\n  \"email\": \"admin@biblioteca.com\",\n  \"password\": \"Admin123!\"\n}"
+      },
+      "modified": 0,
+      "created": 0
+    },
+    {
+      "_id": "req_users_get",
+      "_type": "request",
+      "parentId": "fld_users",
+      "name": "Get User",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/v1/users/{{ _.userId }}",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        }
+      ],
+      "body": {},
+      "modified": 0,
+      "created": 0
+    },
+    {
+      "_id": "req_users_loans",
+      "_type": "request",
+      "parentId": "fld_users",
+      "name": "User Loans",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/v1/users/{{ _.userId }}/loans?offset=0&limit=50",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        }
+      ],
+      "body": {},
+      "modified": 0,
+      "created": 0
+    },
+    {
+      "_id": "fld_books",
+      "_type": "request_group",
+      "parentId": "wrk_biblioteca",
+      "name": "Books",
+      "modified": 0,
+      "created": 0
+    },
+    {
+      "_id": "req_books_list",
+      "_type": "request",
+      "parentId": "fld_books",
+      "name": "List Books",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/v1/books?offset=0&limit=50",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        }
+      ],
+      "body": {},
+      "modified": 0,
+      "created": 0
+    },
+    {
+      "_id": "req_books_create",
+      "_type": "request",
+      "parentId": "fld_books",
+      "name": "Create Book",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/v1/books",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"title\": \"Dom Casmurro\",\n  \"isbn\": \"9780000000009\",\n  \"author_name\": \"Machado de Assis\",\n  \"total_copies\": 2\n}"
+      },
+      "modified": 0,
+      "created": 0
+    },
+    {
+      "_id": "req_books_availability",
+      "_type": "request",
+      "parentId": "fld_books",
+      "name": "Book Availability",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/v1/books/{{ _.bookId }}/availability",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        }
+      ],
+      "body": {},
+      "modified": 0,
+      "created": 0
+    },
+    {
+      "_id": "fld_loans",
+      "_type": "request_group",
+      "parentId": "wrk_biblioteca",
+      "name": "Loans",
+      "modified": 0,
+      "created": 0
+    },
+    {
+      "_id": "req_loans_create",
+      "_type": "request",
+      "parentId": "fld_loans",
+      "name": "Create Loan",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/v1/loans",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"user_id\": \"{{ _.userId }}\",\n  \"book_id\": \"{{ _.bookId }}\"\n}"
+      },
+      "modified": 0,
+      "created": 0
+    },
+    {
+      "_id": "req_loans_return",
+      "_type": "request",
+      "parentId": "fld_loans",
+      "name": "Return Loan",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/v1/loans/{{ _.loanId }}/return",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        }
+      ],
+      "body": {},
+      "modified": 0,
+      "created": 0
+    },
+    {
+      "_id": "req_loans_active",
+      "_type": "request",
+      "parentId": "fld_loans",
+      "name": "Active Loans",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/v1/loans/active?offset=0&limit=50",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        }
+      ],
+      "body": {},
+      "modified": 0,
+      "created": 0
+    },
+    {
+      "_id": "req_loans_overdue",
+      "_type": "request",
+      "parentId": "fld_loans",
+      "name": "Overdue Loans",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/v1/loans/overdue?offset=0&limit=50",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        }
+      ],
+      "body": {},
+      "modified": 0,
+      "created": 0
+    },
+    {
+      "_id": "req_loans_user",
+      "_type": "request",
+      "parentId": "fld_loans",
+      "name": "User Loan History",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/v1/loans/user/{{ _.userId }}?offset=0&limit=50",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.token }}"
+        }
+      ],
+      "body": {},
+      "modified": 0,
+      "created": 0
+    }
+  ]
+}
