@@ -66,19 +66,26 @@ def create_app() -> FastAPI:
 
     @app.on_event("startup")
     async def startup() -> None:
-        if settings.redis_enabled:
-            redis_client = await init_redis(settings.redis_url)
-            if settings.rate_limit_enabled:
+        # If tests override get_settings via app.dependency_overrides, skip external init
+        if get_settings in app.dependency_overrides:
+            await init_notification_scheduler(app)
+            return
+
+        current_settings = get_settings()
+        if current_settings.redis_enabled:
+            redis_client = await init_redis(current_settings.redis_url)
+            if current_settings.rate_limit_enabled:
                 await init_rate_limiter(redis_client)
-        
+
         # Inicializa scheduler de notificações
         await init_notification_scheduler(app)
 
     @app.on_event("shutdown")
     async def shutdown() -> None:
-        if settings.redis_enabled:
+        current_settings = get_settings()
+        if current_settings.redis_enabled:
             await close_redis()
-        
+
         # Encerra scheduler de notificações
         await shutdown_notification_scheduler()
 

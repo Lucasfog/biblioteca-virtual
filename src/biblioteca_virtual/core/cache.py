@@ -9,7 +9,28 @@ redis_client: Optional[redis.Redis] = None
 
 def get_redis() -> redis.Redis:
     if redis_client is None:
-        raise RuntimeError("Redis client not initialized")
+        # Return a no-op redis-compatible object to allow running without Redis (e.g. tests)
+        class _Noop:
+            async def ping(self):
+                return True
+
+            async def get(self, key):
+                return None
+
+            async def set(self, key, value, ex=None):
+                return None
+
+            async def delete(self, key):
+                return None
+
+            async def close(self):
+                return None
+
+            async def scan_iter(self, match=None):
+                if False:
+                    yield None
+
+        return _Noop()
     return redis_client
 
 

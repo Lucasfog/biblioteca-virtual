@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from biblioteca_virtual.core.cache import Cache, get_redis
-from biblioteca_virtual.core.config import get_settings
+from biblioteca_virtual.core.config import get_settings, Settings
 from biblioteca_virtual.core.db import get_session
 from biblioteca_virtual.core.rate_limit import rate_limit_dependency
 from biblioteca_virtual.core.security import get_current_user
@@ -35,8 +35,8 @@ async def list_books(
     pagination: PaginationParams = Depends(),
     service: BookService = Depends(get_book_service),
     _current_user=Depends(get_current_user),
+    settings: Settings = Depends(get_settings),
 ):
-    settings = get_settings()
     cache_hit = False
     if settings.redis_enabled:
         cache = Cache(get_redis())
@@ -78,9 +78,9 @@ async def create_book(
     payload: BookCreate,
     service: BookService = Depends(get_book_service),
     _current_user=Depends(get_current_user),
+    settings: Settings = Depends(get_settings),
 ):
     book = await service.create_book(payload)
-    settings = get_settings()
     if settings.redis_enabled:
         cache = Cache(get_redis())
         await cache.delete_pattern("books:list:*")

@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from biblioteca_virtual.core.config import get_settings
+from biblioteca_virtual.core.config import get_settings, Settings
 from biblioteca_virtual.core.db import get_session
 from biblioteca_virtual.core.rate_limit import rate_limit_dependency
 from biblioteca_virtual.core.security import create_access_token
@@ -29,13 +29,13 @@ def get_auth_service(session: AsyncSession = Depends(get_session)) -> AuthServic
 async def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     service: AuthService = Depends(get_auth_service),
+    settings: Settings = Depends(get_settings),
 ):
     user = await service.authenticate_user(form_data.username, form_data.password)
     if user is None:
         logger.warning("login_failed", email=form_data.username, reason="invalid_credentials")
         from biblioteca_virtual.core.errors import UnauthorizedError
         raise UnauthorizedError("Credenciais invalidas")
-    settings = get_settings()
     token = create_access_token(
         subject=str(user.id),
         expires_delta=timedelta(minutes=settings.access_token_expire_minutes),
