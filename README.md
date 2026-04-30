@@ -6,15 +6,16 @@
 
 ## 📑 Índice
 
-1. [Introdução](#1-introdução)
-2. [Instalação e Execução](#2-instalação-e-execução)
-3. [Autenticação no Swagger](#3-autenticação-no-swagger)
-4. [Listagem de Rotas](#4-listagem-de-rotas)
-5. [Payloads Necessários](#5-payloads-necessários)
-6. [Exemplos de Uso](#6-exemplos-de-uso)
+1. [Introdução](#1-introducao)
+2. [Instalação e Execução](#2-instalacao)
+3. [Autenticação no Swagger](#3-autenticacao)
+4. [Listagem de Rotas](#4-rotas)
+5. [Payloads Necessários](#5-payloads)
+6. [Exemplos de Uso](#6-exemplos)
 
 ---
 
+<a name="1-introducao"></a>
 ## 1. 🚀 Introdução
 
 A **Biblioteca Virtual API** é um sistema robusto desenvolvido para gerenciar operações de uma biblioteca digital, incluindo o cadastro de usuários, livros, autores e o controle de empréstimos e devoluções.
@@ -27,27 +28,54 @@ O projeto foi construído para ser escalável e pronto para produção, utilizan
 
 ---
 
+<a name="2-instalacao"></a>
 ## 2. ⚙️ Instalação e Execução
+
+Você pode rodar a aplicação facilmente usando **Docker** (recomendado) ou configurando o ambiente **Localmente** via `uv`.
+
+### Opção 1: Via Docker (Recomendado) 🐳
+
+A forma mais rápida de subir o ambiente completo (API, Banco de Dados e Redis) é utilizando o Docker, que irá automaticamente configurar e executar as migrações e o servidor.
+
+**Pré-requisitos**: [Docker](https://docs.docker.com/get-docker/) e [Docker Compose](https://docs.docker.com/compose/install/) instalados.
+
+**1. Configurar o ambiente**
+```bash
+cp .env.example .env
+```
+
+**2. Subir os containers**
+```bash
+docker compose up -d --build
+```
+> A API estará disponível em `http://localhost:8000` e a documentação interativa em `http://localhost:8000/docs`.
+
+**3. Rodar os testes via Docker**
+```bash
+docker compose exec api uv run pytest
+```
+
+---
+
+### Opção 2: Localmente via `uv` 💻
 
 O projeto utiliza a ferramenta moderna `uv` para um gerenciamento ultrarrápido de dependências e ambientes virtuais.
 
-### Pré-requisitos
+**Pré-requisitos**
 * Python 3.11+
 * PostgreSQL 16+
 * Redis 7+
 * [uv](https://docs.astral.sh/uv/) instalado
 
-### Passo a Passo
-
-**1. Instalar dependências e criar ambiente virtual**
-```bash
-uv sync --all-groups
-```
-
-**2. Configurar o ambiente**
+**1. Configurar o ambiente**
 ```bash
 cp .env.example .env
-# Edite o .env com suas credenciais de banco de dados e Redis
+# Edite o .env com suas credenciais do PostgreSQL e Redis rodando localmente
+```
+
+**2. Instalar dependências e criar ambiente virtual**
+```bash
+uv sync --all-groups
 ```
 
 **3. Executar as migrações (Banco de Dados)**
@@ -59,7 +87,7 @@ uv run alembic upgrade head
 ```bash
 uv run uvicorn biblioteca_virtual.main:app --reload
 ```
-A API estará disponível em `http://localhost:8000` e a documentação interativa em `http://localhost:8000/docs`.
+> A API estará disponível em `http://localhost:8000` e a documentação interativa em `http://localhost:8000/docs`.
 
 **5. Rodar os testes**
 ```bash
@@ -73,6 +101,7 @@ uv build
 
 ---
 
+<a name="3-autenticacao"></a>
 ## 3. 🔐 Autenticação no Swagger
 
 Para testar as rotas protegidas diretamente pela interface interativa do Swagger, siga os passos abaixo.
@@ -94,6 +123,7 @@ Para testar as rotas protegidas diretamente pela interface interativa do Swagger
 
 ---
 
+<a name="4-rotas"></a>
 ## 4. 🗺️ Listagem de Rotas
 
 Visão geral dos endpoints disponíveis na API:
@@ -113,6 +143,7 @@ Visão geral dos endpoints disponíveis na API:
 
 ---
 
+<a name="5-payloads"></a>
 ## 5. 📦 Payloads Necessários
 
 Abaixo estão os formatos de envio (body), query params e headers exigidos nas rotas principais da aplicação.
@@ -165,6 +196,7 @@ Abaixo estão os formatos de envio (body), query params e headers exigidos nas r
 
 ---
 
+<a name="6-exemplos"></a>
 ## 6. 💻 Exemplos de Uso
 
 ### Exemplos via Swagger
