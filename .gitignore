@@ -12,6 +12,10 @@ htmlcov/
 .idea/
 .vscode/
 *.log
+.planning
+.planning/
+.agent
+.agent/
 
 # Build artifacts
 dist/
