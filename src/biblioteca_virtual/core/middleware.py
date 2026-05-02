@@ -22,9 +22,12 @@ PUBLIC_ROUTES = [
     ("GET", "/metrics"),
     ("POST", "/api/v1/auth/token"),
     ("POST", "/api/v1/users"),
+    ("POST", "/api/v1/users/"),
 ]
 
 def is_public_route(method: str, path: str) -> bool:
+    if method == "OPTIONS":
+        return True
     if path.startswith("/docs") or path.startswith("/redoc") or path.startswith("/openapi"):
         return True
     return (method, path) in PUBLIC_ROUTES

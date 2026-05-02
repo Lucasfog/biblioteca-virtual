@@ -1,0 +1,92 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-heading);
+  
+  --color-neon-green: #36F4A4;
+  --color-deep-teal: #02090A;
+  --color-dark-forest: #061A1C;
+  --color-forest: #102620;
+  --color-dark-border: #1E2C31;
+
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+  
+  --shadow-shopify-card: rgba(0,0,0,0.1) 0px 0px 0px 1px, rgba(0,0,0,0.1) 0px 2px 2px, rgba(0,0,0,0.1) 0px 4px 4px, rgba(0,0,0,0.1) 0px 8px 8px, rgba(255,255,255,0.03) 0px 1px 0px inset;
+}
+
+:root, .dark {
+  /* Dark-first: void background, white text */
+  --background: #000000;
+  --foreground: #FFFFFF;
+
+  --card: #02090A; /* Deep Teal */
+  --card-foreground: #FFFFFF;
+
+  --popover: #102620; /* Forest */
+  --popover-foreground: #FFFFFF;
+
+  --primary: #FFFFFF;
+  --primary-foreground: #000000;
+
+  --secondary: transparent;
+  --secondary-foreground: #FFFFFF;
+
+  --muted: #061A1C; /* Dark Forest */
+  --muted-foreground: #A1A1AA; /* Muted Text */
+
+  --accent: #102620; /* Forest */
+  --accent-foreground: #FFFFFF;
+
+  --destructive: #EF4444;
+
+  --border: #1E2C31; /* Dark Card Border */
+  --input: #3F3F46; /* Shade-70 */
+  --ring: #36F4A4; /* Neon Green */
+
+  --radius: 0.5rem; /* 8px default radius */
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    /* Apply ss03 feature globally for the distinctive letterforms */
+    font-feature-settings: "ss03" 1;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading tracking-tight;
+  }
+}
