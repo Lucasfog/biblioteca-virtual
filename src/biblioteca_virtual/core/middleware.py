@@ -5,10 +5,9 @@ from uuid import uuid4
 from fastapi import FastAPI, Request, Response
 from jose import JWTError, jwt
 from pydantic import BaseModel
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from biblioteca_virtual.core.config import get_settings
-from biblioteca_virtual.core.db import get_engine_no_cache
+from biblioteca_virtual.core.db import get_session_maker
 from biblioteca_virtual.modules.users.repository import UserRepository
 
 logger = structlog.get_logger(__name__)
@@ -80,8 +79,7 @@ def auth_middleware(app: FastAPI) -> None:
             try:
                 from uuid import UUID
                 user_id = UUID(token_data.sub)
-                engine = get_engine_no_cache()
-                session_maker = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+                session_maker = get_session_maker()
                 async with session_maker() as session:
                     user = await UserRepository(session).get_by_id(user_id)
                     if user is None:
