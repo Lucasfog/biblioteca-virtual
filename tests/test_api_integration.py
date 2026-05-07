@@ -38,7 +38,7 @@ async def test_app():
 
     app.dependency_overrides[get_settings] = override_get_settings
 
-    with patch("biblioteca_virtual.core.middleware.get_engine_no_cache", return_value=engine):
+    with patch("biblioteca_virtual.core.db.get_engine", return_value=engine):
         yield app
 
     app.dependency_overrides.clear()
